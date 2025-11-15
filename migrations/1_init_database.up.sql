@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS team (
+    team_name TEXT PRIMARY KEY
+);
