@@ -29,6 +29,15 @@ func (s *TeamService) Create(ctx context.Context, team domain.Team) (domain.Team
 	var createdTeam domain.Team
 
 	err := s.tm.Do(ctx, func(ctx context.Context) error {
+		uniqueUserMap := make(map[string]bool, len(team.Members)+1)
+
+		for _, member := range team.Members {
+			if ok := uniqueUserMap[member.ID]; ok {
+				return validateError.UserNotUniqueId
+			}
+			uniqueUserMap[member.ID] = true
+		}
+
 		_, err := s.teamRepo.GetByName(ctx, team.Name)
 		if err == nil {
 			return validateError.ErrTeamExists

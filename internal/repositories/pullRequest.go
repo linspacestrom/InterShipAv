@@ -19,6 +19,7 @@ type PrRepo interface {
 	GetPullRequestIdsByReviewerId(ctx context.Context, userId string) ([]string, error)
 	GetPullRequestsByIds(ctx context.Context, prIds []string) ([]domain.PullRequestReviewRead, error)
 	GetReviewersById(ctx context.Context, id string) ([]string, error)
+	Reassign(ctx context.Context, prId string, newReviewerId string, oldReviewerId string) error
 }
 
 type PullRequestRepository struct {
@@ -96,6 +97,17 @@ func (r *PullRequestRepository) AssignReviewers(ctx context.Context, prId string
 	}
 
 	return reviewerIds, nil
+}
+
+func (r *PullRequestRepository) Reassign(ctx context.Context, prId string, newReviewerId string, oldReviewerId string) error {
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	_, err := tx.Exec(ctx, `UPDATE pr_reviewers SET reviewer_id = $1 WHERE pull_request_id = $2 and reviewer_id = $3`, newReviewerId, prId, oldReviewerId)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
 
 func (r *PullRequestRepository) GetPullRequestIdsByReviewerId(ctx context.Context, userId string) ([]string, error) {

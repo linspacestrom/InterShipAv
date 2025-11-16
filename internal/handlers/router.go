@@ -33,5 +33,6 @@ func NewPullRequestHandler(router *gin.Engine, svc services.PRSer, logg *zap.Log
 	{
 		api.POST("/create", h.CreatePR)
 		api.POST("/merge", h.MergePR)
+		api.POST("/reassign", h.ReassignPR)
 	}
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/linspacestrom/InterShipAv/internal/domain"
 	"github.com/linspacestrom/InterShipAv/internal/repositories"
@@ -13,6 +14,7 @@ import (
 type PRSer interface {
 	Create(ctx context.Context, createPr domain.PullRequestCreate) (domain.PullRequestRead, error)
 	Merge(ctx context.Context, prMerger domain.PRMerge) (domain.PRMergeRead, error)
+	Reassign(ctx context.Context, pr domain.PRReassign) (domain.PrReassignRead, error)
 }
 
 type PRService struct {
@@ -99,4 +101,83 @@ func (s *PRService) Merge(ctx context.Context, prMerger domain.PRMerge) (domain.
 	}
 
 	return pr, nil
+}
+
+func (s *PRService) Reassign(ctx context.Context, pr domain.PRReassign) (domain.PrReassignRead, error) {
+	var prReassign domain.PrReassignRead
+	err := s.tm.Do(ctx, func(ctx context.Context) error {
+		currentPR, err := s.prRepo.GetById(ctx, pr.Id)
+		log.Println(currentPR)
+		if err != nil {
+			return err
+		}
+		if currentPR.Status == domain.StatusMerged {
+			return validateError.PrMergedExist
+		}
+
+		author, err := s.userRepo.GetById(ctx, currentPR.AuthorId)
+		if err != nil {
+			return err
+		}
+
+		oldReviewer, err := s.userRepo.GetById(ctx, pr.OldUserId)
+		if err != nil {
+			return err
+		}
+
+		if author.TeamName != oldReviewer.TeamName {
+			return validateError.UserNotAssignToTeam
+		}
+
+		reviewerIds, err := s.prRepo.GetReviewersById(ctx, pr.Id)
+		if err != nil {
+			return err
+		}
+
+		found := false
+		for _, id := range reviewerIds {
+			if id == oldReviewer.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return validateError.UserNotAssignReviewer
+		}
+
+		newReviewerId, err := s.userRepo.GetNewReviewer(ctx, author.Id, author.TeamName, reviewerIds)
+		if err != nil {
+			return err
+		}
+
+		err = s.prRepo.Reassign(ctx, pr.Id, newReviewerId, pr.OldUserId)
+		if err != nil {
+			return err
+		}
+
+		currentPR, err = s.prRepo.GetById(ctx, pr.Id)
+		if err != nil {
+			return err
+		}
+
+		reviewerIds, err = s.prRepo.GetReviewersById(ctx, pr.Id)
+		if err != nil {
+			return err
+		}
+
+		prReassign.ReplacedId = newReviewerId
+		prReassign.PullRequest = currentPR
+		prReassign.PullRequest.AssignReviewerIds = reviewerIds
+
+		return nil
+
+	})
+
+	if err != nil {
+		return prReassign, err
+	}
+
+	return prReassign, nil
+
 }
