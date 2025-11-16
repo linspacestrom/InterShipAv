@@ -19,6 +19,7 @@ type UserRepo interface {
 	GetById(ctx context.Context, id string) (domain.User, error)
 	SetActiveById(ctx context.Context, id string, isActive bool) (domain.User, error)
 	GetNewReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error)
+	GetNewReviewer(ctx context.Context, authorId string, teamName string, reviewersIds []string) (string, error)
 }
 
 type UserRepository struct {
@@ -140,4 +141,33 @@ func (r *UserRepository) GetNewReviewers(ctx context.Context, name string, exclu
 	}
 
 	return userIds, nil
+}
+
+func (r *UserRepository) GetNewReviewer(ctx context.Context, authorId string, teamName string, reviewersIds []string) (string, error) {
+	var newReviewerId string
+
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	row := tx.QueryRow(
+		ctx,
+		`SELECT id FROM "user" 
+     	WHERE is_active = true 
+       	AND id != $1 
+       	AND team_name = $2 
+       	AND id != ALL($3) 
+     	ORDER BY RANDOM() 
+     	LIMIT 1`,
+		authorId,
+		teamName,
+		reviewersIds,
+	)
+
+	if err := row.Scan(&newReviewerId); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", validateError.NoCandidate
+		}
+		return "", err
+	}
+
+	return newReviewerId, nil
 }

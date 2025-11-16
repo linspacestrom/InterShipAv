@@ -42,3 +42,13 @@ type PRMergeRead struct {
 	AssignReviewerIds []string
 	MergedAt          *time.Time
 }
+
+type PRReassign struct {
+	Id        string
+	OldUserId string
+}
+
+type PrReassignRead struct {
+	PullRequest PullRequestRead
+	ReplacedId  string
+}

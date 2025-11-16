@@ -45,3 +45,24 @@ func PRMergeToDTO(res domain.PRMergeRead) dto.PRMergeResponse {
 		MergedAt:          mergedAt,
 	}
 }
+
+func PrReassignDTOtoDomain(res dto.PRReassignRequest) domain.PRReassign {
+	return domain.PRReassign{Id: res.Id, OldUserId: res.OldUserId}
+}
+
+func DomainToPRDTO(res domain.PrReassignRead) dto.PrReassignResponse {
+	return dto.PrReassignResponse{
+		PrRead:     DomainPullToDTO(res.PullRequest),
+		ReplacedId: res.ReplacedId,
+	}
+}
+
+func DomainPullToDTO(res domain.PullRequestRead) dto.ReassignResponse {
+	return dto.ReassignResponse{
+		Id:                res.Id,
+		Name:              res.Name,
+		AuthorId:          res.AuthorId,
+		Status:            string(res.Status),
+		AssignReviewerIds: res.AssignReviewerIds,
+	}
+}

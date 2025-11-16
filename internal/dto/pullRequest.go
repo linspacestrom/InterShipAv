@@ -35,3 +35,21 @@ type PRMergeResponse struct {
 	AssignReviewerIds []string   `json:"assigned_reviewers"`
 	MergedAt          *time.Time `json:"mergedAt"`
 }
+
+type PRReassignRequest struct {
+	Id        string `json:"pull_request_id" binding:"required"`
+	OldUserId string `json:"old_user_id" binding:"required"`
+}
+
+type ReassignResponse struct {
+	Id                string   `json:"pull_request_id"`
+	Name              string   `json:"pull_request_name"`
+	AuthorId          string   `json:"author_id"`
+	Status            string   `json:"status"`
+	AssignReviewerIds []string `json:"assign_reviewer"`
+}
+
+type PrReassignResponse struct {
+	PrRead     ReassignResponse `json:"pr"`
+	ReplacedId string           `json:"replaced_by"`
+}
