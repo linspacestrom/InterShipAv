@@ -31,7 +31,7 @@ func TeamMemberToDTO(member domain.TeamMember) dto.TeamMemberDTO {
 	return dto.TeamMemberDTO{
 		ID:       member.ID,
 		Username: member.Username,
-		IsActive: member.IsActive,
+		IsActive: &member.IsActive,
 	}
 }
 
@@ -50,6 +50,6 @@ func DTOToTeamMember(m dto.TeamMemberDTO) domain.TeamMember {
 	return domain.TeamMember{
 		ID:       m.ID,
 		Username: m.Username,
-		IsActive: m.IsActive,
+		IsActive: *m.IsActive,
 	}
 }

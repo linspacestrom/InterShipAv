@@ -44,13 +44,15 @@ func main() {
 
 	teamRepo := repositories.NewTeamRepository(pool)
 	userRepo := repositories.NewUserRepository(pool)
+	prRepo := repositories.NewPullRequestRepository(pool)
 
 	tm := transaction.NewManager(pool)
 
 	teamSvc := services.NewTeamService(teamRepo, userRepo, tm)
 	userSvc := services.NewUserService(userRepo, tm)
+	prSvc := services.NewPRService(prRepo, userRepo, teamRepo, tm)
 
-	srv := handlers.NewServer(cfg, &teamSvc, &userSvc, logger)
+	srv := handlers.NewServer(cfg, &teamSvc, &userSvc, &prSvc, logger)
 
 	go func() {
 		if err := srv.Run(ctx); err != nil {
