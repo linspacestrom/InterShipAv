@@ -16,13 +16,14 @@ type Server struct {
 	logg *zap.Logger
 }
 
-func NewServer(cfg *config.Config, teamSvc services.TeamSer, logg *zap.Logger) *Server {
+func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.UserSer, logg *zap.Logger) *Server {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 
 	// инициализация хэндлеров
 	NewTeamHandler(router, teamSvc, logg)
+	NewUserHandler(router, userSvc, logg)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.ServerPort,
