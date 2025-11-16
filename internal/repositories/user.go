@@ -2,13 +2,16 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/linspacestrom/InterShipAv/internal/domain"
 	"github.com/linspacestrom/InterShipAv/internal/transaction"
+	"github.com/linspacestrom/InterShipAv/internal/validateError"
 )
 
 type UserRepo interface {
@@ -16,6 +19,7 @@ type UserRepo interface {
 	GetUserByTeamName(ctx context.Context, name string) ([]domain.TeamMember, error)
 	GetById(ctx context.Context, id string) (domain.User, error)
 	SetActiveById(ctx context.Context, id string, isActive bool) (domain.User, error)
+	GetReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error)
 }
 
 type UserRepository struct {
@@ -88,14 +92,15 @@ func (r *UserRepository) GetUserByTeamName(ctx context.Context, name string) ([]
 func (r *UserRepository) GetById(ctx context.Context, id string) (domain.User, error) {
 	var user domain.User
 
-	tx := transaction.GetQuerier(ctx, r.pool)
-
-	row := tx.QueryRow(ctx, `SELECT * FROM "user" WHERE id = $1`, id)
+	q := transaction.GetQuerier(ctx, r.pool)
+	row := q.QueryRow(ctx, `SELECT id, username, team_name, is_active FROM "user" WHERE id = $1`, id)
 
 	if err := row.Scan(&user.Id, &user.Username, &user.TeamName, &user.IsActive); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return user, validateError.UserNotFound
+		}
 		return user, err
 	}
-
 	return user, nil
 }
 
@@ -112,4 +117,30 @@ func (r *UserRepository) SetActiveById(ctx context.Context, id string, isActive 
 
 	return user, nil
 
+}
+
+func (r *UserRepository) GetReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error) {
+	userIds := make([]string, 0, 2)
+
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	rows, err := tx.Query(ctx, `SELECT id FROM "user" WHERE is_active = true and id != $1 and team_name = $2 ORDER BY RANDOM() LIMIT 2`, excludeUserId, name)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		userIds = append(userIds, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIds, nil
 }

@@ -3,7 +3,7 @@ package dto
 type TeamMemberDTO struct {
 	ID       string `json:"user_id" binding:"required"`
 	Username string `json:"username" binding:"required"`
-	IsActive bool   `json:"is_active" binding:"required"`
+	IsActive *bool  `json:"is_active" binding:"required"`
 }
 
 type CreateTeamRequest struct {

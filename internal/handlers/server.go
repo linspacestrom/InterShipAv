@@ -16,7 +16,7 @@ type Server struct {
 	logg *zap.Logger
 }
 
-func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.UserSer, logg *zap.Logger) *Server {
+func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.UserSer, prSvc services.PRSer, logg *zap.Logger) *Server {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
@@ -24,6 +24,7 @@ func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.Us
 	// инициализация хэндлеров
 	NewTeamHandler(router, teamSvc, logg)
 	NewUserHandler(router, userSvc, logg)
+	NewPullRequestHandler(router, prSvc, logg)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.ServerPort,

@@ -24,3 +24,12 @@ func NewUserHandler(router *gin.Engine, svc services.UserSer, logg *zap.Logger) 
 		api.POST("/setIsActive", h.SetActive)
 	}
 }
+
+func NewPullRequestHandler(router *gin.Engine, svc services.PRSer, logg *zap.Logger) {
+	h := NewPullRequestHandlerStruct(svc, logg)
+
+	api := router.Group("/pullRequest")
+	{
+		api.POST("/create", h.CreatePR)
+	}
+}
