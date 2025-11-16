@@ -49,7 +49,7 @@ func main() {
 	tm := transaction.NewManager(pool)
 
 	teamSvc := services.NewTeamService(teamRepo, userRepo, tm)
-	userSvc := services.NewUserService(userRepo, tm)
+	userSvc := services.NewUserService(userRepo, prRepo, tm)
 	prSvc := services.NewPRService(prRepo, userRepo, teamRepo, tm)
 
 	srv := handlers.NewServer(cfg, &teamSvc, &userSvc, &prSvc, logger)

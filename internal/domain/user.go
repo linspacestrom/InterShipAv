@@ -11,3 +11,8 @@ type User struct {
 	TeamName string
 	IsActive bool
 }
+
+type UserReview struct {
+	Id           string
+	PullRequests []PullRequestReviewRead
+}

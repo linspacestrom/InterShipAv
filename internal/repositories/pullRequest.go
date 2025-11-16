@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,6 +16,8 @@ type PrRepo interface {
 	Create(ctx context.Context, pr domain.PullRequestCreate) (domain.PullRequestRead, error)
 	GetById(ctx context.Context, id string) (domain.PullRequestRead, error)
 	AssignReviewers(ctx context.Context, prId string, userIds []string) ([]string, error)
+	GetPullRequestIdsByUserId(ctx context.Context, userId string) ([]string, error)
+	GetPullRequestsByIds(ctx context.Context, prIds []string) ([]domain.PullRequestReviewRead, error)
 }
 
 type PullRequestRepository struct {
@@ -70,4 +73,58 @@ func (r *PullRequestRepository) AssignReviewers(ctx context.Context, prId string
 	}
 
 	return reviewerIds, nil
+}
+
+func (r *PullRequestRepository) GetPullRequestIdsByUserId(ctx context.Context, userId string) ([]string, error) {
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	log.Println("живем")
+
+	rows, err := tx.Query(ctx, `SELECT pull_request_id FROM pr_reviewers WHERE reviewer_id = $1`, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var prIds []string
+	for rows.Next() {
+		var prId string
+		if err := rows.Scan(&prId); err != nil {
+			return nil, err
+		}
+		prIds = append(prIds, prId)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return prIds, nil
+}
+
+func (r *PullRequestRepository) GetPullRequestsByIds(ctx context.Context, prIds []string) ([]domain.PullRequestReviewRead, error) {
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	rows, err := tx.Query(ctx, `SELECT pull_request_id, pull_request_name, author_id, status FROM pull_request WHERE pull_request_id = ANY($1)`, prIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	prReviews := make([]domain.PullRequestReviewRead, 0, len(prIds))
+
+	for rows.Next() {
+		var pr domain.PullRequestReviewRead
+		if err := rows.Scan(&pr.Id, &pr.Name, &pr.AuthorId, &pr.Status); err != nil {
+			return nil, err
+		}
+		prReviews = append(prReviews, pr)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return prReviews, nil
 }

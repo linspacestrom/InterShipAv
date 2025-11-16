@@ -38,3 +38,16 @@ func (h *UserHandler) SetActive(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, mapper.UserToDTO(updatedUser))
 }
+
+func (h *UserHandler) GetReview(c *gin.Context) {
+	userId := c.Param("user_id")
+
+	userReview, err := h.svc.GetReview(c.Request.Context(), userId)
+	if err != nil {
+		h.logg.Error("user not found", zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, mapper.DomainReviewToDTOReview(userReview))
+}

@@ -11,3 +11,8 @@ type UserResponse struct {
 	TeamName string `json:"team_name"`
 	IsActive bool   `json:"is_active"`
 }
+
+type UserReviewResponse struct {
+	Id           string          `json:"user_id"`
+	PullRequests []PRReadRequest `json:"pull_requests"`
+}

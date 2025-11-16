@@ -13,3 +13,10 @@ type PRCreateResponse struct {
 	Status            string   `json:"status"`
 	AssignReviewerIds []string `json:"assign_reviewer"`
 }
+
+type PRReadRequest struct {
+	Id       string `json:"pull_request_id"`
+	Name     string `json:"pull_request_name"`
+	AuthorId string `json:"author_id"`
+	Status   string `json:"status"`
+}
