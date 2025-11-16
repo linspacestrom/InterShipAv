@@ -38,7 +38,7 @@ func (h *TeamHandler) CreateTeam(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, mapper.CreateTeamToDTO(createdTeam))
+	c.JSON(http.StatusCreated, gin.H{"team": mapper.CreateTeamToDTO(createdTeam)})
 }
 
 func (h *TeamHandler) GetTeamByName(c *gin.Context) {

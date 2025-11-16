@@ -56,7 +56,7 @@ func (s *UserService) GetReview(ctx context.Context, userId string) (domain.User
 		return reviewer, nil
 	}
 
-	prIds, err := s.prRepo.GetPullRequestIdsByUserId(ctx, userId)
+	prIds, err := s.prRepo.GetPullRequestIdsByReviewerId(ctx, userId)
 	if err != nil {
 		return reviewer, nil
 	}
@@ -70,5 +70,4 @@ func (s *UserService) GetReview(ctx context.Context, userId string) (domain.User
 	reviewer.PullRequests = prReviews
 
 	return reviewer, nil
-
 }

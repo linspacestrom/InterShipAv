@@ -22,14 +22,14 @@ func DTOToUserShort(user dto.UserRequest) domain.UserShort {
 }
 
 func DomainReviewToDTOReview(user domain.UserReview) dto.UserReviewResponse {
-	pullRequests := make([]dto.PRReadRequest, 0, len(user.PullRequests))
+	pullResponse := make([]dto.PRReadResponse, 0, len(user.PullRequests))
 
 	for _, pr := range user.PullRequests {
-		pullRequests = append(pullRequests, dto.PRReadRequest{Id: pr.Id, Name: pr.Name, AuthorId: pr.AuthorId, Status: string(pr.Status)})
+		pullResponse = append(pullResponse, dto.PRReadResponse{Id: pr.Id, Name: pr.Name, AuthorId: pr.AuthorId, Status: string(pr.Status)})
 	}
 
 	return dto.UserReviewResponse{
 		Id:           user.Id,
-		PullRequests: pullRequests,
+		PullRequests: pullResponse,
 	}
 }

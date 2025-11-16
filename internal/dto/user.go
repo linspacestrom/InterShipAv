@@ -13,6 +13,6 @@ type UserResponse struct {
 }
 
 type UserReviewResponse struct {
-	Id           string          `json:"user_id"`
-	PullRequests []PRReadRequest `json:"pull_requests"`
+	Id           string           `json:"user_id"`
+	PullRequests []PRReadResponse `json:"pull_requests"`
 }

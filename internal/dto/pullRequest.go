@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type PRCreateRequest struct {
 	Id       string `json:"pull_request_id" binding:"required"`
 	Name     string `json:"pull_request_name" binding:"required"`
@@ -14,9 +16,22 @@ type PRCreateResponse struct {
 	AssignReviewerIds []string `json:"assign_reviewer"`
 }
 
-type PRReadRequest struct {
+type PRReadResponse struct {
 	Id       string `json:"pull_request_id"`
 	Name     string `json:"pull_request_name"`
 	AuthorId string `json:"author_id"`
 	Status   string `json:"status"`
+}
+
+type PRMergeRequest struct {
+	Id string `json:"pull_request_id" binding:"required"`
+}
+
+type PRMergeResponse struct {
+	Id                string     `json:"pull_request_id"`
+	Name              string     `json:"pull_request_name"`
+	AuthorId          string     `json:"author_id"`
+	Status            string     `json:"status"`
+	AssignReviewerIds []string   `json:"assigned_reviewers"`
+	MergedAt          *time.Time `json:"mergedAt"`
 }
