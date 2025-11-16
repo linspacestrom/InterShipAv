@@ -21,7 +21,6 @@ func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.Us
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 
-	// инициализация хэндлеров
 	NewTeamHandler(router, teamSvc, logg)
 	NewUserHandler(router, userSvc, logg)
 	NewPullRequestHandler(router, prSvc, logg)
