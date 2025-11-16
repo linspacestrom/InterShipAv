@@ -3,6 +3,9 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,9 +31,6 @@ func NewServer(cfg *config.Config, teamSvc services.TeamSer, userSvc services.Us
 	srv := &http.Server{
 		Addr:    ":" + cfg.ServerPort,
 		Handler: router,
-		//ReadTimeout:  cfg.ServerReadTimeout,
-		//WriteTimeout: cfg.ServerWriteTimeout,
-		//IdleTimeout:  cfg.ServerIdleTimeout,
 	}
 
 	return &Server{
@@ -51,16 +51,22 @@ func (s *Server) Run(ctx context.Context) error {
 		}
 	}()
 
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
 	select {
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		s.logg.Info("HTTP server shutting down")
-		return s.srv.Shutdown(shutdownCtx)
+		s.logg.Info("context canceled, shutting down HTTP server")
+	case sig := <-sigChan:
+		s.logg.Info("received OS signal, shutting down HTTP server", zap.String("signal", sig.String()))
 	case err := <-errc:
 		if err != nil {
 			s.logg.Error("HTTP server error", zap.Error(err))
+			return err
 		}
-		return err
 	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return s.srv.Shutdown(shutdownCtx)
 }
