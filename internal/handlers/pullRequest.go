@@ -42,6 +42,24 @@ func (h *PullRequestHandler) CreatePR(c *gin.Context) {
 
 }
 
+func (h *PullRequestHandler) MergePR(c *gin.Context) {
+	var prDTO dto.PRMergeRequest
+	if err := c.ShouldBindJSON(&prDTO); err != nil {
+		h.logg.Warn("invalid request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	prDomain := mapper.DTOtoPRMerge(prDTO)
+
+	mergedPr, err := h.svc.Merge(c.Request.Context(), prDomain)
+	if err != nil {
+		h.handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"pr": mapper.PRMergeToDTO(mergedPr)})
+}
+
 func (h *PullRequestHandler) handleError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, validateError.ErrPRExist):
@@ -49,6 +67,9 @@ func (h *PullRequestHandler) handleError(c *gin.Context, err error) {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 	case errors.Is(err, validateError.UserNotFound):
 		h.logg.Error("User not found", zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case errors.Is(err, validateError.ErrPrNotExist):
+		h.logg.Error("PR not found", zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	default:
 		h.logg.Error("Internal server error", zap.Error(err))

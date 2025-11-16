@@ -32,5 +32,6 @@ func NewPullRequestHandler(router *gin.Engine, svc services.PRSer, logg *zap.Log
 	api := router.Group("/pullRequest")
 	{
 		api.POST("/create", h.CreatePR)
+		api.POST("/merge", h.MergePR)
 	}
 }

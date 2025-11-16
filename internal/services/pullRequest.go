@@ -12,6 +12,7 @@ import (
 
 type PRSer interface {
 	Create(ctx context.Context, createPr domain.PullRequestCreate) (domain.PullRequestRead, error)
+	Merge(ctx context.Context, prMerger domain.PRMerge) (domain.PRMergeRead, error)
 }
 
 type PRService struct {
@@ -50,7 +51,7 @@ func (s *PRService) Create(ctx context.Context, createPr domain.PullRequestCreat
 			return err
 		}
 
-		users, err := s.userRepo.GetReviewers(ctx, author.TeamName, author.Id)
+		users, err := s.userRepo.GetNewReviewers(ctx, author.TeamName, author.Id)
 		if err != nil {
 			return err
 		}
@@ -67,5 +68,35 @@ func (s *PRService) Create(ctx context.Context, createPr domain.PullRequestCreat
 	if err != nil {
 		return domain.PullRequestRead{}, err
 	}
+	return pr, nil
+}
+
+func (s *PRService) Merge(ctx context.Context, prMerger domain.PRMerge) (domain.PRMergeRead, error) {
+	var pr domain.PRMergeRead
+	err := s.tm.Do(ctx, func(ctx context.Context) error {
+		currentPr, err := s.prRepo.GetById(ctx, prMerger.Id)
+		if err != nil {
+			return err
+		}
+
+		prMerged, err := s.prRepo.Merge(ctx, prMerger.Id)
+		if err != nil {
+			return err
+		}
+
+		users, err := s.prRepo.GetReviewersById(ctx, currentPr.Id)
+		if err != nil {
+			return err
+		}
+
+		pr = prMerged
+		pr.AssignReviewerIds = users
+		return nil
+	})
+
+	if err != nil {
+		return pr, err
+	}
+
 	return pr, nil
 }

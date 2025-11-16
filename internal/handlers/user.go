@@ -36,7 +36,7 @@ func (h *UserHandler) SetActive(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, mapper.UserToDTO(updatedUser))
+	c.JSON(http.StatusCreated, gin.H{"user": mapper.UserToDTO(updatedUser)})
 }
 
 func (h *UserHandler) GetReview(c *gin.Context) {

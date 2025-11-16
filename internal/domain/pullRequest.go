@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type PullRequestStatus string
 
 const (
@@ -26,4 +28,17 @@ type PullRequestReviewRead struct {
 	Name     string
 	AuthorId string
 	Status   PullRequestStatus
+}
+
+type PRMerge struct {
+	Id string
+}
+
+type PRMergeRead struct {
+	Id                string
+	Name              string
+	AuthorId          string
+	Status            PullRequestStatus
+	AssignReviewerIds []string
+	MergedAt          *time.Time
 }

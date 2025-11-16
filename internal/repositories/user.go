@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -19,7 +18,7 @@ type UserRepo interface {
 	GetUserByTeamName(ctx context.Context, name string) ([]domain.TeamMember, error)
 	GetById(ctx context.Context, id string) (domain.User, error)
 	SetActiveById(ctx context.Context, id string, isActive bool) (domain.User, error)
-	GetReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error)
+	GetNewReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error)
 }
 
 type UserRepository struct {
@@ -37,8 +36,6 @@ func (r *UserRepository) AddUsersToTeam(ctx context.Context, users []domain.Team
 	valueArgs := make([]any, 0, len(users)*4)
 
 	arg := 1
-
-	log.Printf("\nпользователи создались\n")
 
 	for _, u := range users {
 		valueStrings = append(
@@ -119,7 +116,7 @@ func (r *UserRepository) SetActiveById(ctx context.Context, id string, isActive 
 
 }
 
-func (r *UserRepository) GetReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error) {
+func (r *UserRepository) GetNewReviewers(ctx context.Context, name string, excludeUserId string) ([]string, error) {
 	userIds := make([]string, 0, 2)
 
 	tx := transaction.GetQuerier(ctx, r.pool)
