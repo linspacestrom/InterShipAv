@@ -22,6 +22,7 @@ func NewUserHandler(router *gin.Engine, svc services.UserSer, logg *zap.Logger) 
 	api := router.Group("/users")
 	{
 		api.POST("/setIsActive", h.SetActive)
+		api.GET("/getReview/:user_id", h.GetReview)
 	}
 }
 

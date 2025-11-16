@@ -20,3 +20,10 @@ type PullRequestRead struct {
 	Status            PullRequestStatus
 	AssignReviewerIds []string
 }
+
+type PullRequestReviewRead struct {
+	Id       string
+	Name     string
+	AuthorId string
+	Status   PullRequestStatus
+}

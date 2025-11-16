@@ -20,3 +20,16 @@ func DTOToUserShort(user dto.UserRequest) domain.UserShort {
 		IsActive: *user.IsActive,
 	}
 }
+
+func DomainReviewToDTOReview(user domain.UserReview) dto.UserReviewResponse {
+	pullRequests := make([]dto.PRReadRequest, 0, len(user.PullRequests))
+
+	for _, pr := range user.PullRequests {
+		pullRequests = append(pullRequests, dto.PRReadRequest{Id: pr.Id, Name: pr.Name, AuthorId: pr.AuthorId, Status: string(pr.Status)})
+	}
+
+	return dto.UserReviewResponse{
+		Id:           user.Id,
+		PullRequests: pullRequests,
+	}
+}
