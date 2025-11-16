@@ -5,7 +5,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-run:
+run: format
 	@go run cmd/server/main.go || true
 
 env:
@@ -26,3 +26,18 @@ migrate-down:
 
 test:
 	@go test -count=1 -v ./tests/...
+
+format: fmt vet tidy
+	@echo "Code formatted & vetted successfully"
+
+fmt:
+	@echo "Formatting code..."
+	@go fmt ./...
+
+vet:
+	@echo "Running go vet..."
+	@go vet ./...
+
+tidy:
+	@echo "Tidying go modules..."
+	@go mod tidy

@@ -37,7 +37,7 @@ func LoadConfig() (*Config, error) {
 		DbConfig: DbConfig{
 			Host:     getEnv("POSTGRES_HOST", "localhost"),
 			Port:     getEnv("POSTGRES_PORT", "5432"),
-			DbName:   getEnv("POSTGRES_NAME", "pr_db"),
+			DbName:   getEnv("POSTGRES_DB", "pr_db"),
 			User:     getEnv("POSTGRES_USER", "postgres"),
 			Password: getEnv("POSTGRES_PASSWORD", "postgres"),
 		},
