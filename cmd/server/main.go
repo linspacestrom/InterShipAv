@@ -48,8 +48,9 @@ func main() {
 	tm := transaction.NewManager(pool)
 
 	teamSvc := services.NewTeamService(teamRepo, userRepo, tm)
+	userSvc := services.NewUserService(userRepo, tm)
 
-	srv := handlers.NewServer(cfg, &teamSvc, logger)
+	srv := handlers.NewServer(cfg, &teamSvc, &userSvc, logger)
 
 	go func() {
 		if err := srv.Run(ctx); err != nil {

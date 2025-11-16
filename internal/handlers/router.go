@@ -15,3 +15,12 @@ func NewTeamHandler(router *gin.Engine, svc services.TeamSer, logg *zap.Logger) 
 		api.GET("/get/:team_name", h.GetTeamByName)
 	}
 }
+
+func NewUserHandler(router *gin.Engine, svc services.UserSer, logg *zap.Logger) {
+	h := NewUserHandlerStruct(svc, logg)
+
+	api := router.Group("/users")
+	{
+		api.POST("/setIsActive", h.SetActive)
+	}
+}

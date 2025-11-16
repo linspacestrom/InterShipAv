@@ -14,6 +14,8 @@ import (
 type UserRepo interface {
 	AddUsersToTeam(ctx context.Context, users []domain.TeamMember, teamName string) error
 	GetUserByTeamName(ctx context.Context, name string) ([]domain.TeamMember, error)
+	GetById(ctx context.Context, id string) (domain.User, error)
+	SetActiveById(ctx context.Context, id string, isActive bool) (domain.User, error)
 }
 
 type UserRepository struct {
@@ -81,4 +83,33 @@ func (r *UserRepository) GetUserByTeamName(ctx context.Context, name string) ([]
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) GetById(ctx context.Context, id string) (domain.User, error) {
+	var user domain.User
+
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	row := tx.QueryRow(ctx, `SELECT * FROM "user" WHERE id = $1`, id)
+
+	if err := row.Scan(&user.Id, &user.Username, &user.TeamName, &user.IsActive); err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) SetActiveById(ctx context.Context, id string, isActive bool) (domain.User, error) {
+	var user domain.User
+
+	tx := transaction.GetQuerier(ctx, r.pool)
+
+	row := tx.QueryRow(ctx, `UPDATE "user" SET is_active = $1 WHERE id = $2 RETURNING id, username, team_name, is_active`, isActive, id)
+
+	if err := row.Scan(&user.Id, &user.Username, &user.TeamName, &user.IsActive); err != nil {
+		return user, err
+	}
+
+	return user, nil
+
 }
