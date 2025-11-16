@@ -1,4 +1,4 @@
-.PHONY: run, env, create_db
+.PHONY: run, env, create_db, test
 
 ifneq (,$(wildcard .env))
     include .env
@@ -23,3 +23,6 @@ migrate-up:
 
 migrate-down:
 	@migrate -path $(MIGRATIONS_DIR) -database $(DB_URL) down
+
+test:
+	@go test -count=1 -v ./tests/...
